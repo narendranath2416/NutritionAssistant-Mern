@@ -1,42 +1,56 @@
 import Log from '../models/Log.js';
+import Profile from '../models/Profile.js';
 
-// @desc    Get all daily nutrition logs
-// @route   GET /api/logs
+// Get logs for a specific user email
 export const getLogs = async (req, res) => {
   try {
-    const logs = await Log.find().sort({ loggedAt: -1 });
-    res.status(200).json({ success: true, count: logs.length, data: logs });
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ success: false, message: 'Email required' });
+    const logs = await Log.find({ userEmail: email }).sort({ loggedAt: -1 });
+    res.status(200).json({ success: true, data: logs });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Create a new nutrition entry
-// @route   POST /api/logs
+// Create a log entry linked to user email
 export const createLog = async (req, res) => {
   try {
     const newLog = await Log.create(req.body);
     res.status(201).json({ success: true, data: newLog });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ success: false, errors: messages });
-    }
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Delete a specific entry
+export const deleteLog = async (req, res) => {
+  try {
+    const log = await Log.findById(req.params.id);
+    if (!log) return res.status(404).json({ success: false, message: 'Not found' });
+    await log.deleteOne();
+    res.status(200).json({ success: true, message: 'Removed' });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Delete a specific log entry
-// @route   DELETE /api/logs/:id
-export const deleteLog = async (req, res) => {
+// Get or Save Profile details
+export const getProfile = async (req, res) => {
   try {
-    const log = await Log.findById(req.params.id);
-    if (!log) {
-      return res.status(404).json({ success: false, message: 'Log entry not found' });
-    }
-    await log.deleteOne();
-    res.status(200).json({ success: true, message: 'Log entry removed safely' });
+    const profile = await Profile.findOne({ userEmail: req.query.email });
+    res.status(200).json({ success: true, data: profile });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const saveProfile = async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    const profile = await Profile.findOneAndUpdate({ userEmail }, req.body, { upsert: true, new: true });
+    res.status(200).json({ success: true, data: profile });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };

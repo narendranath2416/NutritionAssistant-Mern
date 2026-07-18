@@ -2,36 +2,29 @@ import mongoose from 'mongoose';
 
 const logSchema = new mongoose.Schema(
   {
+    userEmail: {
+      type: String,
+      required: true
+    },
     mealType: {
       type: String,
-      required: [true, 'Meal type is required'],
+      required: true,
       enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack'],
     },
     foodItem: {
       type: String,
-      required: [true, 'Food item name is required'],
+      required: true,
       trim: true,
+      maxLength: 100
     },
     calories: {
       type: Number,
-      required: [true, 'Calorie value is required'],
-      min: [0, 'Calories cannot be negative'],
+      required: true,
+      min: 0,
     },
-    protein: {
-      type: Number,
-      default: 0,
-      min: [0, 'Protein cannot be negative'],
-    },
-    carbs: {
-      type: Number,
-      default: 0,
-      min: [0, 'Carbs cannot be negative'],
-    },
-    fats: {
-      type: Number,
-      default: 0,
-      min: [0, 'Fats cannot be negative'],
-    },
+    protein: { type: Number, default: 0, min: 0 },
+    carbs: { type: Number, default: 0, min: 0 },
+    fats: { type: Number, default: 0, min: 0 },
     loggedAt: {
       type: Date,
       default: Date.now,
